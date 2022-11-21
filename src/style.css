@@ -1,0 +1,123 @@
+/* @import url('https://fonts.googleapis.com/css2?family=Poppins&display=swap'); */
+
+@font-face {
+  font-family: 'Poppins';
+  font-style: normal;
+  font-weight: 400;
+  src: local('Poppins'), local('Poppins-Regular'), url('/fonts/Poppins-Regular.ttf') format('truetype');
+}
+
+@font-face {
+  font-family: 'Poppins';
+  font-style: italic;
+  font-weight: 400;
+  src: local('Poppins Italic'), local('Poppins-Italic'), url('/fonts/Poppins-Italic.ttf') format('truetype');
+}
+
+@font-face {
+  font-family: 'Poppins';
+  font-style: normal;
+  font-weight: 300;
+  src: local('Poppins Light'), local('Poppins-Light'), url('/fonts/Poppins-Light.ttf') format('truetype');
+}
+
+@font-face {
+  font-family: 'Poppins';
+  font-style: italic;
+  font-weight: 700;
+  src: local('Poppins Bold'), local('Poppins-Bold'), url('/fonts/Poppins-Bold.ttf') format('truetype');
+}
+
+/* Vars */
+:root {
+  --app-navigation-footer-height: 50px;
+  --app-greeting-header-height: 80px;
+
+  /* Colors */
+  --app-white: #fbfcff;
+  --app-light: #f2efea;
+  --app-dark: #041825;
+  --app-danger: #db6c79;
+  --app-warning: #f9dc5c;
+  --app-success: #00a896;
+  --app-primary: #3185fc;
+  --app-secondary: #f49d37;
+}
+
+body {
+  font-family: 'Poppins', serif !important;
+  font-style: normal !important;
+  font-weight: 400 !important;
+  font-size: 14px !important;
+  color: #041825 !important;
+}
+
+/* General */
+main {
+  min-height: 100vh;
+  background: var(--app-white);
+  overflow: hidden;
+}
+
+/* Animations */
+.fade-enter-from,
+.fade-leave-to {
+  opacity: 0;
+}
+.fade-enter-active,
+.fade-leave-active {
+  transition: opacity 0.2s ease-out;
+}
+
+/* Utils */
+.view-section {
+  position: relative;
+  height: calc(100vh - var(--app-greeting-header-height) - var(--app-navigation-footer-height));
+}
+.view-section > .page {
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+}
+.scrollable {
+  /* max-height: 100% !important; */
+  overflow: auto !important;
+}
+.loading {
+  position: fixed;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+}
+.processing {
+  padding: var(--van-padding-lg);
+  text-align: center;
+}
+.cell-groups-title {
+  text-align: center;
+  font-size: 1.5rem;
+  margin: var(--van-padding-md) var(--van-padding-lg);
+  font-weight: lighter;
+}
+.cell-groups-subtitle {
+  font-size: var(--van-font-size-md);
+  margin: var(--van-padding-md) var(--van-padding-lg);
+  color: var(--van-gray-7);
+  font-weight: lighter;
+}
+
+/* Vant overwrite */
+.van-popover__action {
+  width: 100% !important;
+}
+
+.scheduled-every-calendar .van-calendar__header-subtitle {
+  visibility: hidden;
+}
+
+/* Navigation Footer */
+footer.navigation .van-popover__wrapper {
+  height: 100%;
+  flex-grow: 1;
+  flex-basis: 0;
+}
