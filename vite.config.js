@@ -11,6 +11,10 @@ export default defineConfig({
     vue(),
     eslintPlugin(),
     VitePWA({
+      devOptions: {
+        enabled: true
+        /* other options */
+      },
       registerType: 'autoUpdate',
       includeAssets: ['favicon.svg', 'fonts/*.ttf'],
       manifest: {

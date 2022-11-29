@@ -16,18 +16,8 @@ const route = useRoute()
 
 // Config
 const visibilityOptions = [
-  {
-    value: 'expense',
-    text: 'Gasto'
-  },
-  {
-    value: 'income',
-    text: 'Ingreso'
-  },
-  {
-    value: 'debt',
-    text: 'Deuda'
-  }
+  { value: 'expense', text: 'Gasto' },
+  { value: 'income', text: 'Ingreso' }
 ]
 
 // References
@@ -41,7 +31,10 @@ const label = reactive({
   name: '',
   note: '',
   budget: null,
-  visibility: visibilityOptions.map((el) => el.value)
+  visibility: visibilityOptions.map((el) => el.value),
+  createdAt: null,
+  updatedAt: null,
+  deletedAt: null
 })
 
 // Functions
@@ -87,10 +80,10 @@ onMounted(async () => {
     loading.value = true
     emptyLabel.value = JSON.stringify(label)
     if (props.updateMode) {
-      const labelData = await labelsStore.get(route.params.id)
-      for (const key in labelData) {
+      const data = await labelsStore.get(route.params.id)
+      for (const key in data) {
         if (label.hasOwnProperty(key)) {
-          label[key] = labelData[key]
+          label[key] = data[key]
         }
       }
     }
@@ -109,9 +102,15 @@ onMounted(async () => {
     </div>
     <div v-else>
       <van-form class="label-form" @submit="onSubmit">
-        <h6 class="cell-groups-title">Nueva Etiqueta</h6>
+        <h6 class="cell-groups-subtitle">Crear etiqueta</h6>
         <van-cell-group inset>
-          <van-field v-model="label.name" name="name" label="Nombre" placeholder="Nombre" />
+          <van-field
+            v-model="label.name"
+            name="name"
+            label="Nombre"
+            placeholder="Nombre"
+            :rules="[{ pattern: /\w+/, message: 'Campo requerido' }]"
+          />
           <van-field
             v-model="label.note"
             name="note"

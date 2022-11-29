@@ -1,10 +1,12 @@
 <script setup>
-import { ref, reactive, computed, onMounted, watch } from 'vue'
+import { ref, reactive, computed, onMounted, watch, watchEffect } from 'vue'
 import { useRoute } from 'vue-router'
 import dayjs from 'dayjs'
 import { useRecordsStore } from '../stores/records'
 import { useJobsStore } from '../stores/jobs'
 import { useLabelsStore } from '../stores/labels'
+import { Toast } from 'vant'
+import 'vant/es/toast/style'
 
 // Props
 const props = defineProps({
@@ -36,43 +38,57 @@ const showTypesPicker = ref(false)
 const showLabelsPicker = ref(false)
 const emptyRecord = ref('')
 
+const scheduled = ref(false)
+const scheduledOn = ref(null)
+
+const reminder = ref(false)
+const reminderOn = ref(null)
+
 const record = reactive({
   id: null,
   type: 'expense',
   amount: 0,
   note: '',
   label: {},
-  scheduled: false,
-  scheduledOn: null,
-  reminder: false,
-  reminderOn: null
+  pending: false,
+  createdAt: null,
+  updatedAt: null,
+  deletedAt: null
 })
 
 // Computed
 const typesOptions = computed(() => {
   return [
     { name: 'Gasto', value: 'expense' },
-    { name: 'Ingreso', value: 'income' },
-    { name: 'Deuda', value: 'debt' }
+    { name: 'Ingreso', value: 'income' }
   ]
 })
-const labelsOptions = computed(() => labelsStore.items.filter((el) => el.visibility.includes(record.type)))
-const scheduledFormatDate = computed(() => (record.scheduled ? `${record.scheduledOn} de cada mes` : null))
-const isJobRecord = computed(() => record.scheduled || record.reminder)
-const recordTypeName = computed(() => typesOptions.value.find((el) => el.value === record.type)?.name || null)
+const labels = computed(() => labelsStore.items.filter((el) => el.visibility.includes(record.type)))
+const scheduledText = computed(() => (scheduled.value ? `${scheduledOn.value} de cada mes` : null))
+const isJob = computed(() => scheduled.value || reminder.value)
+const typeName = computed(() => typesOptions.value.find((el) => el.value === record.type)?.name || null)
 
 // Functions
 async function onSubmit() {
   try {
     processing.value = true
 
-    if (isJobRecord.value) {
-      return await jobsStore.create(record)
+    if (isJob.value) {
+      const rules = {
+        scheduled: scheduled.value,
+        scheduledOn: scheduledOn.value,
+        reminder: reminder.value,
+        reminderOn: reminderOn.value
+      }
+      await jobsStore.create(record, rules)
+    } else {
+      if (props.updateMode) {
+        await recordsStore.update(record)
+      } else {
+        await recordsStore.create(record)
+      }
     }
-    if (props.updateMode) {
-      return await recordsStore.update(record)
-    }
-    await recordsStore.create(record)
+    Toast.success('Guardado')
   } catch (error) {
     console.log(error)
   } finally {
@@ -81,7 +97,7 @@ async function onSubmit() {
 }
 
 function onConfirmLabel(event) {
-  const label = labelsOptions.value.find((el) => el.id === event.id)
+  const label = labels.value.find((el) => el.id === event.id)
   record.label = {
     id: label.id,
     name: label.name
@@ -95,7 +111,7 @@ function onConfirmType(event) {
 }
 
 function onConfirmScheduled(event) {
-  record.scheduledOn = event.getDate()
+  scheduledOn.value = event.getDate()
   showScheduledPicker.value = false
 }
 
@@ -116,29 +132,30 @@ watch(
   }
 )
 watch(
-  () => [record.scheduled, record.reminder],
+  () => [scheduled.value, reminder.value],
   (val) => {
     const [scheduled, reminder] = val
-    record.scheduledOn = scheduled ? dayjs().date() : null
-    record.reminderOn = reminder ? dayjs().todate() : null
+    scheduledOn.value = scheduled ? dayjs().date() : null
+    reminderOn.value = reminder ? dayjs().todate() : null
   }
 )
+
+watchEffect(() => record.label = labelsStore.default)
 
 // Lifecycle
 onMounted(async () => {
   try {
     loading.value = true
     emptyRecord.value = JSON.stringify(record)
-    await labelsStore.list()
+    await labelsStore.getAll()
+
     if (props.updateMode) {
-      const recordData = await recordsStore.get(route.params.id)
-      for (const key in recordData) {
+      const data = await recordsStore.get(route.params.id)
+      for (const key in data) {
         if (record.hasOwnProperty(key)) {
-          record[key] = recordData[key]
+          record[key] = data[key]
         }
       }
-    } else {
-      record.label = labelsStore.default
     }
   } catch (error) {
     console.log(error)
@@ -157,7 +174,7 @@ onMounted(async () => {
       <van-form @submit="onSubmit">
         <van-cell-group inset>
           <van-field
-            v-model="recordTypeName"
+            v-model="typeName"
             is-link
             readonly
             name="type"
@@ -172,6 +189,7 @@ onMounted(async () => {
             label="Monto"
             placeholder="Monto"
             autocomplete="off"
+            :rules="[{ pattern: /\d+/, message: 'Campo requerido' }]"
           />
           <van-field
             v-model="record.note"
@@ -192,22 +210,28 @@ onMounted(async () => {
             @click="showLabelsPicker = true"
           />
 
-          <template v-if="!props.updateMode && record.type !== 'debt'">
+          <van-cell center title="Pendiente">
+            <template #right-icon>
+              <van-switch v-model="record.pending" name="pending" size="24" />
+            </template>
+          </van-cell>
+
+          <template v-if="!props.updateMode">
             <van-cell center title="Programado">
               <template #right-icon>
-                <van-switch v-model="record.scheduled" name="scheduled" size="24" />
+                <van-switch v-model="scheduled" name="scheduled" size="24" />
               </template>
             </van-cell>
             <van-cell
-              v-if="record.scheduled"
+              v-if="scheduled"
               title="Se agrega el"
               name="scheduledOn"
               is-link
-              :value="scheduledFormatDate"
+              :value="scheduledText"
               @click="showScheduledPicker = true"
             />
           </template>
-          <template v-else-if="props.updateMode && record.scheduled">
+          <template v-else-if="props.updateMode && scheduled">
             <van-cell title="Gasto programado" icon="info-o" />
           </template>
 
@@ -236,7 +260,7 @@ onMounted(async () => {
             <van-picker
               title="Etiquetas"
               :columns-field-names="pickerConfig"
-              :columns="labelsOptions"
+              :columns="labels"
               @cancel="showLabelsPicker = false"
               @confirm="onConfirmLabel"
             />

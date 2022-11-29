@@ -25,15 +25,10 @@ const props = defineProps({
   }
 })
 
-// References
 
 // Functions
 function onShowRecordDetails(item) {
   router.push('/app/records/' + item.id)
-}
-
-function onRecordRemove(item) {
-  emit('on-remove', item.id)
 }
 
 function formatDate(date) {
@@ -53,14 +48,19 @@ function formatDate(date) {
           <van-cell clickable @click="onShowRecordDetails(item)">
             <template #title>
               <span class="record-title">
-                <span v-if="item.type === 'expense'" :class="item.type">
-                  - $ {{ item.amount }} <van-icon v-if="item.scheduled" name="clock-o" color="#403d58" />
+                <span
+                  v-if="item.type === 'expense'"
+                  :class="item.type"
+                >
+                  - $ {{ item.amount }}
+                  <van-icon v-if="item.scheduled" name="clock-o" color="#403d58" />
                 </span>
-                <span v-else-if="item.type === 'income'" :class="item.type">
-                  + $ {{ item.amount }} <van-icon v-if="item.scheduled" name="clock-o" color="#403d58" />
-                </span>
-                <span v-else-if="item.type === 'debt'" :class="item.type">
-                  - $ {{ item.amount }} <van-icon v-if="item.confirmed" name="passed" color="#5688c7" />
+                <span
+                  v-else
+                  :class="item.type"
+                >
+                  + $ {{ item.amount }}
+                  <van-icon v-if="item.scheduled" name="clock-o" color="#403d58" />
                 </span>
               </span>
             </template>
@@ -72,7 +72,12 @@ function formatDate(date) {
             </template>
           </van-cell>
           <template #right>
-            <van-button square type="danger" text="Eliminar" class="swipe-cell-button" @click="onRecordRemove(item)" />
+            <van-button
+              square
+              type="danger"
+              text="Eliminar"
+              @click="emit('on-remove', item.id)"
+            />
           </template>
         </van-swipe-cell>
       </template>
@@ -94,7 +99,7 @@ function formatDate(date) {
 }
 .record-title {
   font-size: var(--van-font-size-lg);
-  font-weight: 600;
+  font-weight: 700;
 }
 .record-title .income {
   color: var(--app-success);
@@ -102,11 +107,7 @@ function formatDate(date) {
 .record-title .expense {
   color: var(--app-danger);
 }
-.record-title .debt {
+.record-title .pending {
   color: var(--van-gray-6);
-}
-.swipe-cell-button {
-  margin-left: 1px;
-  height: 100%;
 }
 </style>

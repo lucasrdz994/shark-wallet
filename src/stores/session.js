@@ -43,7 +43,7 @@ export const useSessionStore = defineStore('session', {
             name: item,
             note: null,
             createdAt: dayjs().toDate(),
-            visibility: ['income', 'expense', 'debt']
+            visibility: ['income', 'expense']
           }
           batch.set(doc(collection(userRef, 'labels')), label)
         }

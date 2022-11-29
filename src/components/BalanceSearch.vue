@@ -26,7 +26,7 @@ function onSearch(event) {
 }
 
 // Computed
-const dateStringFormat = computed(() => {
+const dateText = computed(() => {
   if (date.value) {
     return dayjs(date.value).format('MMMM, YYYY')
   }
@@ -47,7 +47,7 @@ onMounted(() => {
         readonly
         label="Balance de"
         placeholder="Seleccione un mes"
-        :model-value="dateStringFormat"
+        :model-value="dateText"
         @click="showDatePopup = true"
       />
     </van-cell-group>
@@ -59,6 +59,7 @@ onMounted(() => {
         :min-date="minDate"
         :max-date="maxDate"
         @confirm="onSearch"
+        @cancel="showDatePopup = false"
       />
     </van-popup>
   </section>

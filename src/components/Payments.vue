@@ -3,6 +3,9 @@ import { ref, computed, onMounted } from 'vue'
 import { useRecordsStore } from '../stores/records'
 // import { useJobsStore } from '../stores/jobs'
 
+// Components
+import Loading from './Loading.vue'
+
 const recordsStore = useRecordsStore()
 // const jobsStore = useJobsStore()
 
@@ -19,19 +22,18 @@ const themeVars = {
 
 // References
 const loading = ref(false)
-const debts = ref([])
 const reminders = ref([])
 
 // Computed
-const haveDebts = computed(() => Boolean(debts.value.length))
-const debtsCount = computed(() => debts.value.length)
+const havePendings = computed(() => Boolean(recordsStore.pendings.length))
+const pendingsCount = computed(() => recordsStore.pendings.length)
 const haveReminders = computed(() => Boolean(reminders.value.length))
 
 // Lifecycle
 onMounted(async () => {
   try {
     loading.value = true
-    debts.value = await recordsStore.debts()
+    await recordsStore.getPendings()
     // reminders.value = await jobsStore.reminders()
   } catch (error) {
     console.log(error)
@@ -44,18 +46,20 @@ onMounted(async () => {
 <template>
   <van-row gutter="16">
     <van-col span="8">
-      <div class="box center">
-        <template v-if="haveDebts">
-          <van-config-provider :theme-vars="themeVars">
-            <van-icon name="warn-o" size="42" :badge="debtsCount" :badge-props="badgeProps" />
-          </van-config-provider>
-          <small>Deudas Pendientes</small>
-        </template>
-        <template v-else>
-          <van-icon name="thumb-circle-o" size="42" />
-          <small>Sin deudas</small>
-        </template>
-      </div>
+      <van-config-provider :theme-vars="themeVars">
+        <div class="box center">
+          <Loading v-if="loading" />
+          <template v-else>
+            <van-icon
+              size="42"
+              :name="havePendings ? 'warn-o' : 'thumb-circle-o'"
+              :badge="pendingsCount || null"
+              :badge-props="badgeProps"
+            />
+            <small>{{ havePendings ? 'Deudas pendientes' : 'Sin deudas' }}</small>
+          </template>
+        </div>
+      </van-config-provider>
     </van-col>
     <van-col span="16">
       <div class="box" :class="{ center: !haveReminders }">

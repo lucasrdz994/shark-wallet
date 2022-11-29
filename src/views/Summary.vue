@@ -1,9 +1,9 @@
 <script setup>
-import { onMounted, ref } from 'vue'
+import { onMounted, ref, computed } from 'vue'
 import { useRecordsStore } from '../stores/records'
 
 // Components
-// import Balance from '../components/Balance.vue'
+import Loading from '../components/Loading.vue'
 import RecordList from '../components/RecordList.vue'
 import Payments from '../components/Payments.vue'
 
@@ -11,6 +11,9 @@ const recordsStore = useRecordsStore()
 
 // References
 const loading = ref(false)
+
+// Computed
+const items = computed(() => recordsStore.latests)
 
 // Functions
 async function onRemoveRecord(event) {
@@ -21,7 +24,7 @@ async function onRemoveRecord(event) {
 onMounted(async () => {
   try {
     loading.value = true
-    await recordsStore.list()
+    await recordsStore.getLatests()
   } catch (error) {
     console.log(error)
   } finally {
@@ -32,12 +35,14 @@ onMounted(async () => {
 
 <template>
   <section class="page">
-    <div v-if="loading" class="loading">
-      <van-loading color="#1989fa" />
-    </div>
+    <Loading v-if="loading" />
     <template v-else>
       <Payments />
-      <RecordList title="Últimos Registros" :items="recordsStore.items" @on-remove="onRemoveRecord" />
+      <RecordList
+        title="Últimos Registros"
+        :items="items"
+        @on-remove="onRemoveRecord"
+      />
     </template>
   </section>
 </template>

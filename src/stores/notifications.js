@@ -3,6 +3,7 @@ import { getDocs, doc, collection, query, orderBy, limit } from 'firebase/firest
 import { db, messaging } from '../firebase'
 import { getToken, onMessage } from 'firebase/messaging'
 import { useSessionStore } from './session'
+import { vapidKey } from '../keys/firebase'
 
 export const useNotificationsStore = defineStore('notifications', {
   state: () => {
@@ -31,7 +32,7 @@ export const useNotificationsStore = defineStore('notifications', {
       // Query
       const q = query(colRef, orderBy('createdAt', 'desc'), limit(10))
       const response = await getDocs(q)
-      console.log(response)
+      // console.log(response)
       const arr = []
       response.forEach((doc) => {
         arr.push({
@@ -43,9 +44,7 @@ export const useNotificationsStore = defineStore('notifications', {
     },
 
     async handleFmcSubscription() {
-      const token = await getToken(messaging, {
-        vapidKey: 'BPJrlqDwlJPT-WbqZF6prH3JZlFwNV1M6hQp8itMQ33dQcEHmIO4Yj9QTtx_DpH5SydR31zP59MatmzUfkJ95y0'
-      })
+      const token = await getToken(messaging, { vapidKey })
       if (token) {
         console.log('debo guardar el token', token)
         const sessionStore = useSessionStore()

@@ -1,43 +1,45 @@
 import { defineStore } from 'pinia'
 import dayjs from 'dayjs'
-import { getDocs, where, addDoc, collection, query, orderBy } from 'firebase/firestore'
+import { onSnapshot, where, addDoc, doc, deleteDoc, collection, query, orderBy } from 'firebase/firestore'
 import { db } from '../firebase'
 import { useSessionStore } from './session'
 
 export const useJobsStore = defineStore('jobs', {
   state: () => {
     return {
-      items: []
+      scheduled: [],
+      reminders: []
     }
   },
 
   actions: {
-    listLocally() {
-      return this.items.length ? this.items : null
+    $collection () {
+      return collection(db, 'jobs')
     },
 
-    async list() {
-      const itemsFound = this.listLocally()
-      if (itemsFound) return itemsFound
+    async getScheduled() {
+      if (this.scheduled.length) return this.scheduled
 
       // References
       const { user } = useSessionStore()
-      const colRef = collection(db, 'jobs')
       // Query
-      const q = query(colRef, where('createdBy', '==', user.uid), orderBy('createdAt', 'desc'))
-      const response = await getDocs(q)
-
-      const arr = []
-      response.forEach((doc) => {
-        arr.push({
-          id: doc.id,
-          ...doc.data()
+      const q = query(
+        this.$collection(),
+        where('createdBy', '==', user.uid),
+        where('rules.scheduled', '==', true),
+        orderBy('createdAt', 'desc')
+      )
+      
+      onSnapshot(q, (querySnapshot) => {
+        const items = []
+        querySnapshot.forEach((doc) => {
+          items.push({ id: doc.id, ...doc.data() })
         })
+        this.scheduled = items
       })
-      this.items = arr
     },
 
-    async create(job) {
+    async create(record, rules) {
       try {
         // References
         const { user } = useSessionStore()
@@ -46,26 +48,25 @@ export const useJobsStore = defineStore('jobs', {
           done: false,
           createdAt: dayjs().toDate(),
           createdBy: user.uid,
-          reminder: job.reminder,
-          reminderOn: job.reminderOn,
-          scheduled: job.scheduled,
-          scheduledOn: job.scheduledOn,
-          record: {
-            amount: job.amount,
-            label: job.label,
-            note: job.note,
-            type: job.type
-          }
+          rules,
+          record
         }
 
-        const response = await addDoc(collection(db, 'jobs'), payload)
-        this.items.unshift({
-          ...payload,
-          id: response.id
-        })
+        await addDoc(this.$collection(), payload)
       } catch (error) {
         console.log(error)
       }
-    }
+    },
+
+    async remove(id) {
+      try {
+        // References
+        const docRef = doc(this.$collection(), id)
+        await deleteDoc(docRef)
+      } catch (error) {
+        console.log(error)
+      }
+    },
+
   }
 })

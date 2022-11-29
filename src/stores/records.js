@@ -11,60 +11,60 @@ import {
   orderBy,
   where,
   getDocs,
-  limit
+  limit,
+  onSnapshot
 } from 'firebase/firestore'
 import { db } from '../firebase'
+
 // Stores
 import { useSessionStore } from './session'
+
+// Records Collection
+// const { user } = useSessionStore()
+// const docRef = doc(db, 'users', user.uid)
+// const colRef = collection(docRef, 'records')
 
 export const useRecordsStore = defineStore('records', {
   state: () => {
     return {
-      items: []
+      latests: [],
+      pendings: [],
+      items: {}
     }
   },
 
   getters: {},
 
   actions: {
-    listLocally() {
-      return this.items.length ? this.items : null
-    },
-
-    async list() {
-      const itemsFound = this.listLocally()
-      if (itemsFound) return itemsFound
-
-      // References
+    $collection () {
       const { user } = useSessionStore()
       const docRef = doc(db, 'users', user.uid)
-      const colRef = collection(docRef, 'records')
-      // Query
-      const q = query(colRef, orderBy('createdAt', 'desc'), limit(10))
-      const response = await getDocs(q)
-
-      const arr = []
-      response.forEach((doc) => {
-        arr.push({
-          id: doc.id,
-          ...doc.data()
-        })
-      })
-      this.items = arr
+      return collection(docRef, 'records')
     },
 
-    getLocally(id) {
-      return this.items.find((el) => el.id === id) || null
+    async getLatests() {
+      if (this.latests.length) return this.latests
+      const q = query(
+        this.$collection(),
+        orderBy('createdAt', 'desc'),
+        limit(10)
+      )
+      onSnapshot(q, (querySnapshot) => {
+        const items = []
+        querySnapshot.forEach((doc) => {
+          items.push({ id: doc.id, ...doc.data() })
+        })
+        this.latests = items
+      })
     },
 
     async get(id) {
       try {
-        const itemFound = this.getLocally(id)
+        const itemFound = this.latests.find(el => el.id === id)
         if (itemFound) return itemFound
 
         // References
-        const { user } = useSessionStore()
-        const docRef = doc(db, 'users', user.uid, 'records', id)
+        const docRef = doc(this.$collection(), id)
         const response = await getDoc(docRef)
         return {
           id: response.id,
@@ -77,22 +77,12 @@ export const useRecordsStore = defineStore('records', {
 
     async create(record) {
       try {
+        // Sanitize params
         const payload = { ...record }
-
         delete payload.id
-        // References
-        const { user } = useSessionStore()
         payload.createdAt = dayjs().toDate()
-        payload.confirmed = payload.type !== 'debt'
-        delete payload.scheduled
-        delete payload.scheduledOn
 
-        const docRef = doc(db, 'users', user.uid)
-        const colRef = collection(docRef, 'records')
-
-        const response = await addDoc(colRef, payload)
-
-        this.items.unshift({ ...payload, id: response.id })
+        await addDoc(this.$collection(), payload)
       } catch (error) {
         console.log(error)
       }
@@ -103,20 +93,11 @@ export const useRecordsStore = defineStore('records', {
         const payload = { ...record }
         const recordId = payload.id
         delete payload.id
-        // References
-        const { user } = useSessionStore()
-        const docRef = doc(db, 'users', user.uid, 'records', recordId)
         payload.updatedAt = dayjs().toDate()
+        // References
+        const docRef = doc(this.$collection(), recordId)
 
         await updateDoc(docRef, payload)
-
-        const index = this.items.findIndex((item) => item.id === recordId)
-        if (index > -1) {
-          this.items[index] = {
-            ...payload,
-            id: recordId
-          }
-        }
       } catch (error) {
         console.log(error)
       }
@@ -124,67 +105,64 @@ export const useRecordsStore = defineStore('records', {
 
     async remove(id) {
       try {
-        console.log(id)
         // References
-        const { user } = useSessionStore()
-        const docRef = doc(db, 'users', user.uid, 'records', id)
-
+        const docRef = doc(this.$collection(), id)
         await deleteDoc(docRef)
-
-        this.items = this.items.filter((item) => item.id !== id)
       } catch (error) {
         console.log(error)
       }
     },
 
-    async balance(date) {
+    async confirm(id) {
+      try {
+        // References
+        const docRef = doc(this.$collection(), id)
+        await updateDoc(docRef, { pending: false })
+      } catch (error) {
+        console.log(error)
+      }
+    },
+
+    async getBalance(date, fetchLocally = true) {
+      const month = dayjs(date).month()
+      if (fetchLocally && this.items[month]?.length) return this.items[month]
+
       const from = dayjs(date).startOf('month').toDate()
       const to = dayjs(date).endOf('month').toDate()
 
-      // References
-      const { user } = useSessionStore()
-      const docRef = doc(db, 'users', user.uid)
-      const colRef = collection(docRef, 'records')
       // Query
       const q = query(
-        colRef,
+        this.$collection(),
         where('createdAt', '>=', from),
         where('createdAt', '<=', to),
         orderBy('createdAt', 'desc')
       )
       const response = await getDocs(q)
 
-      const arr = []
-      response.forEach((doc) => {
-        arr.push({
-          id: doc.id,
-          ...doc.data()
-        })
+      const docs = response.docs.map(doc => {
+        return { id: doc.id, ...doc.data() }
       })
-      return arr
+
+      this.items[month] = docs
+
+      return docs
     },
 
-    async debts() {
-      try {
-        // References
-        const { user } = useSessionStore()
-        const docRef = doc(db, 'users', user.uid)
-        const colRef = collection(docRef, 'records')
-        // Query
-        const q = query(colRef, where('type', '==', 'debt'), where('confirmed', '==', false))
-        const response = await getDocs(q)
+    async getPendings() {
+      if (this.pendings.length) return this.pendings
+      // Query
+      const q = query(
+        this.$collection(),
+        where('pending', '==', false)
+      )
 
-        const arr = []
-        response.forEach((doc) => {
-          arr.push({
-            id: doc.id,
-            ...doc.data()
-          })
+      onSnapshot(q, (querySnapshot) => {
+        const items = []
+        querySnapshot.forEach((doc) => {
+          items.push({ id: doc.id, ...doc.data() })
         })
-        return arr
-      } catch (error) {
-        console.log(error)
-      }
+        this.pendings = items
+      })
     }
   }
 })

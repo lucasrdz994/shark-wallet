@@ -59,7 +59,7 @@ onMounted(async () => {
   try {
     loading.value = true
     emptyLabel.value = JSON.stringify(label)
-    await labelsStore.list()
+    await labelsStore.getAll()
   } catch (error) {
     console.log(error)
   } finally {

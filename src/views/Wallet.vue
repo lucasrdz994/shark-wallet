@@ -19,9 +19,14 @@ const onSearchChange = (event) => (balanceSearch.value = event)
 
 // Watchers
 watch(balanceSearch, async (val) => {
-  processing.value = true
-  items.value = await recordsStore.balance(val)
-  processing.value = false
+  try {
+    processing.value = true
+    items.value = await recordsStore.getBalance(val)
+  } catch (error) {
+    console.log(error)
+  } finally {
+    processing.value = false
+  }
 })
 </script>
 
