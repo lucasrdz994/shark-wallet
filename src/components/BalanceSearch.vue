@@ -14,14 +14,19 @@ const emit = defineEmits(['change'])
 // Configs
 const minDate = dayjs(sessionStore.createdAt).toDate()
 const maxDate = dayjs().toDate()
+const curentYear = String(dayjs().year())
+const currentMonth = String(dayjs().month() + 1)
 
 // References
 const showDatePopup = ref(false)
-const date = ref(dayjs().toDate())
+const date = ref([curentYear, currentMonth])
 
 // Functions
-function onSearch(event) {
-  emit('change', event)
+function onSearch(event = null) {
+  if (event) {
+    date.value = event.selectedValues
+  }
+  emit('change', date.value)
   showDatePopup.value = false
 }
 
@@ -35,7 +40,7 @@ const dateText = computed(() => {
 
 // Lifecycle
 onMounted(() => {
-  onSearch(date.value)
+  onSearch()
 })
 </script>
 
@@ -52,10 +57,10 @@ onMounted(() => {
       />
     </van-cell-group>
     <van-popup v-model:show="showDatePopup" round position="bottom">
-      <van-datetime-picker
+      <van-date-picker
         v-model="date"
-        type="year-month"
         title="Seleccione un mes"
+        :columns-type="['year', 'month']"
         :min-date="minDate"
         :max-date="maxDate"
         @confirm="onSearch"

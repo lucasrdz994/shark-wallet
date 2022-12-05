@@ -124,7 +124,11 @@ export const useRecordsStore = defineStore('records', {
     },
 
     async getBalance(date, fetchLocally = true) {
-      const month = dayjs(date).month()
+      console.log(date)
+      const year = Number(date.at(0))
+      const month = Number(date.at(1))
+      date = dayjs().year(year).month(month - 1)
+
       if (fetchLocally && this.items[month]?.length) return this.items[month]
 
       const from = dayjs(date).startOf('month').toDate()

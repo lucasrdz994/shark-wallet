@@ -39,9 +39,7 @@ function formatDate(date) {
 
 <template>
   <van-cell-group inset class="record-list scrollable">
-    <van-cell>
-      <span class="title">{{ props.title }}</span>
-    </van-cell>
+    <van-cell :title="props.title" />
     <template v-if="!props.processing">
       <template v-if="items.length">
         <van-swipe-cell v-for="item of items" :key="item.id">
@@ -89,9 +87,6 @@ function formatDate(date) {
 </template>
 
 <style scoped>
-.title {
-  font-weight: 600;
-}
 .record-list {
   max-height: 100%;
   margin-top: var(--van-padding-md);
