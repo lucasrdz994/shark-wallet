@@ -89,11 +89,11 @@ export const useSessionStore = defineStore('session', {
       }
     },
 
-    async appendFcmToken(token) {
+    async appendToken(token) {
       try {
         const docRef = doc(db, 'users', this.user.uid)
         await updateDoc(docRef, {
-          fcmTokens: arrayUnion(token)
+          tokens: arrayUnion(token)
         })
       } catch (error) {
         console.log(error)

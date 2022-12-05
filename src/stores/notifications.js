@@ -43,16 +43,15 @@ export const useNotificationsStore = defineStore('notifications', {
       this.items = arr
     },
 
-    async handleFmcSubscription() {
+    async fcmSubscription() {
       const token = await getToken(messaging, { vapidKey })
       if (token) {
-        console.log('debo guardar el token', token)
         const sessionStore = useSessionStore()
-        await sessionStore.appendFcmToken(token)
+        await sessionStore.appendToken(token)
 
         onMessage(messaging, (payload) => {
           console.log('Message received. ', payload)
-          // ...
+          // ... TODO. recibo notificaciones
         })
       }
     },
@@ -61,16 +60,16 @@ export const useNotificationsStore = defineStore('notifications', {
       try {
         if (Notification) {
           if (Notification.permission === 'granted') {
-            await this.handleFmcSubscription()
+            await this.fcmSubscription()
           } else {
             const permission = await Notification.requestPermission()
             if (permission === 'granted') {
-              console.log('Notification permission granted.')
-              await this.handleFmcSubscription()
+              await this.fcmSubscription()
             }
           }
         } else {
           console.log('Notificaciones no permitidas en el dispositivo.')
+          // TODO. mostrar feedback
         }
       } catch (error) {
         console.log(error)

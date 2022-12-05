@@ -3,6 +3,9 @@ import { ref, reactive, onMounted, watch } from 'vue'
 import { useRoute } from 'vue-router'
 import { useLabelsStore } from '../stores/labels'
 
+// Components
+import Loading from '../components/Loading.vue'
+
 // Props
 const props = defineProps({
   updateMode: {
@@ -97,10 +100,8 @@ onMounted(async () => {
 
 <template>
   <section class="page">
-    <div v-if="loading" class="loading">
-      <van-loading color="#1989fa" />
-    </div>
-    <div v-else>
+    <Loading v-if="loading" />
+    <template v-else>
       <van-form class="label-form" @submit="onSubmit">
         <h6 class="cell-groups-subtitle">Crear etiqueta</h6>
         <van-cell-group inset>
@@ -149,12 +150,12 @@ onMounted(async () => {
           <van-button round block type="primary" native-type="submit" :loading="processing">Guardar</van-button>
         </div>
       </van-form>
-    </div>
+    </template>
   </section>
 </template>
 
 <style scoped>
 .label-form {
-  margin-top: 1rem;
+  margin: var(--van-padding-md) 0;
 }
 </style>

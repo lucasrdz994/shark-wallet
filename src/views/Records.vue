@@ -8,6 +8,9 @@ import { useLabelsStore } from '../stores/labels'
 import { Toast } from 'vant'
 import 'vant/es/toast/style'
 
+// Components
+import Loading from '../components/Loading.vue'
+
 // Props
 const props = defineProps({
   updateMode: {
@@ -167,11 +170,9 @@ onMounted(async () => {
 
 <template>
   <section class="page">
-    <div v-if="loading" class="loading">
-      <van-loading color="#1989fa" />
-    </div>
-    <div v-else class="record-form">
-      <van-form @submit="onSubmit">
+    <Loading v-if="loading" />
+    <template v-else>
+      <van-form class="record-form" @submit="onSubmit">
         <van-cell-group inset>
           <van-field
             v-model="typeName"
@@ -271,12 +272,12 @@ onMounted(async () => {
           <van-button round block type="primary" native-type="submit" :loading="processing">Guardar</van-button>
         </div>
       </van-form>
-    </div>
+    </template>
   </section>
 </template>
 
 <style scoped>
 .record-form {
-  padding: var(--van-padding-md) 0;
+  margin: var(--van-padding-md) 0;
 }
 </style>

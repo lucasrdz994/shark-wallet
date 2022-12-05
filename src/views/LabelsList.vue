@@ -5,6 +5,9 @@ import 'dayjs/locale/es'
 import { Toast } from 'vant'
 import 'vant/es/toast/style'
 
+// Components
+import Loading from '../components/Loading.vue'
+
 // Pinia
 import { useLabelsStore } from '../stores/labels'
 
@@ -70,11 +73,9 @@ onMounted(async () => {
 
 <template>
   <section class="page">
-    <div v-if="loading" class="loading">
-      <van-loading color="#1989fa" />
-    </div>
+    <Loading v-if="loading" />
     <div v-else class="labels-list">
-      <van-cell-group inset>
+      <van-cell-group v-if="labelsStore.items.length" inset>
         <van-collapse v-model="showLabelsDetails">
           <van-collapse-item v-for="item of labelsStore.items" :key="item.id" :name="item.id">
             <template #title>
@@ -87,6 +88,7 @@ onMounted(async () => {
           </van-collapse-item>
         </van-collapse>
       </van-cell-group>
+      <van-empty v-else description="No encontramos resultados" />
       <div style="margin: 16px">
         <van-button type="primary" block round to="labels">Nueva etiqueta</van-button>
       </div>
@@ -125,7 +127,7 @@ onMounted(async () => {
 
 <style scoped>
 .labels-list {
-  padding: var(--van-padding-md) 0;
+  margin: var(--van-padding-md) 0;
 }
 .popup-title {
   display: block;

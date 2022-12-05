@@ -46,7 +46,7 @@ watchEffect(() => {
   display: flex;
   justify-content: center;
   align-items: center;
-  padding: var(--van-padding-md) 0;
+  margin: var(--van-padding-md) 0;
   font-weight: 600;
   font-size: 52px;
   color: var(--app-dark);

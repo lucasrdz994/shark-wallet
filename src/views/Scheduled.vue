@@ -4,6 +4,9 @@ import { useJobsStore } from '../stores/jobs'
 import dayjs from 'dayjs'
 import 'dayjs/locale/es'
 
+// Components
+import Loading from '../components/Loading.vue'
+
 dayjs.locale('es')
 
 const jobsStore = useJobsStore()
@@ -45,9 +48,7 @@ onMounted(async () => {
 
 <template>
   <section class="page">
-    <div v-if="loading" class="loading">
-      <van-loading color="#1989fa" />
-    </div>
+    <Loading v-if="loading" />
     <template v-else>
       <van-cell-group inset class="scheduled-list scrollable">
         <van-cell>Programados</van-cell>
@@ -85,7 +86,6 @@ onMounted(async () => {
 
 <style scoped>
 .scheduled-list {
-  max-height: 100%;
   margin-top: var(--van-padding-md);
   margin-bottom: var(--van-padding-md);
 }

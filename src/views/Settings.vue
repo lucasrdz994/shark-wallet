@@ -1,5 +1,5 @@
 <script setup>
-import { ref } from 'vue'
+import { ref, reactive, onMounted } from 'vue'
 import { Toast } from 'vant'
 import 'vant/es/toast/style'
 
@@ -7,15 +7,17 @@ import 'vant/es/toast/style'
 import { useRouter } from 'vue-router'
 
 // Pinia
-import { storeToRefs } from 'pinia'
 import { useSessionStore } from '../stores/session'
 
 const router = useRouter()
 const sessionStore = useSessionStore()
 
 // References
-const { user } = storeToRefs(sessionStore)
 const processing = ref(false)
+const user = reactive({
+  displayName: '',
+  email: ''
+})
 
 // Functions
 async function onSubmit(event) {
@@ -41,23 +43,36 @@ async function onLogout() {
     router.push('/')
   }
 }
+
+// Lifecycle
+onMounted(() => {
+  for (const key in user) {
+    if (sessionStore.user.hasOwnProperty(key)) {
+      user[key] = sessionStore.user[key]
+    }
+  }
+})
 </script>
 
 <template>
-  <section>
-    <template v-if="user">
-      <van-form @submit="onSubmit">
-        <van-cell-group inset>
-          <van-field v-model="user.displayName" name="name" label="Nombre" placeholder="Nombre" />
-          <van-field :model-value="user.email" name="email" label="Email" placeholder="Email" readonly />
-        </van-cell-group>
-        <div style="margin: 16px">
-          <van-button round block type="primary" native-type="submit" :loading="processing">Guardar</van-button>
-        </div>
-      </van-form>
-      <div class="mx-4">
+  <section class="page">
+    <van-form class="settings-form" @submit="onSubmit">
+      <van-cell-group inset>
+        <van-field v-model="user.displayName" name="name" label="Nombre" placeholder="Nombre" />
+        <van-field :model-value="user.email" name="email" label="Email" placeholder="Email" readonly />
+      </van-cell-group>
+      <div style="margin: 16px">
+        <van-button round block type="primary" native-type="submit" :loading="processing">Guardar</van-button>
+      </div>
+      <div style="margin: 0 16px 0 16px">
         <van-button type="danger" block round @click="onLogout">Cerrar sesión</van-button>
       </div>
-    </template>
+    </van-form>
   </section>
 </template>
+
+<style scoped>
+.settings-form {
+  margin: var(--van-padding-md) 0;
+}
+</style>

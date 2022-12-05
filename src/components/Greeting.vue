@@ -1,14 +1,19 @@
 <script setup>
-import { ref, onMounted } from 'vue'
+import { ref, computed, onMounted } from 'vue'
 import { useNotificationsStore } from '../stores/notifications'
+import { useSessionStore } from '../stores/session'
 
 // Components
 import Notifications from './Notifications.vue'
 
 const notificationsStore = useNotificationsStore()
+const sessionStore = useSessionStore()
 
 // References
 const loading = ref(false)
+
+// Computed
+const displayName = computed(() => sessionStore.user.displayName.split(' ')[0])
 
 // Lifecycle
 onMounted(async () => {
@@ -28,7 +33,7 @@ onMounted(async () => {
     <section class="logo-icon">
       <van-image width="52" height="52" src="/favicon.svg" />
     </section>
-    <section class="greeting">Hola Lucas</section>
+    <section class="greeting">Hola {{ displayName }}</section>
     <Notifications />
   </header>
 </template>

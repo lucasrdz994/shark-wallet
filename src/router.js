@@ -8,6 +8,7 @@ import Summary from './views/Summary.vue'
 import Records from './views/Records.vue'
 import Wallet from './views/Wallet.vue'
 import Scheduled from './views/Scheduled.vue'
+import Reminders from './views/Scheduled.vue'
 import Settings from './views/Settings.vue'
 import LabelsList from './views/LabelsList.vue'
 import Labels from './views/Labels.vue'
@@ -77,7 +78,12 @@ const routes = [
       {
         path: 'scheduled',
         component: Records,
-        meta: { title: 'Gastos Programados' }
+        meta: { title: 'Programados' }
+      },
+      {
+        path: 'reminders',
+        component: Reminders,
+        meta: { title: 'Recordatorios' }
       }
     ]
   }

@@ -112,6 +112,10 @@ main {
 }
 
 /* Vant overwrite */
+.van-cell-group {
+  border: 1px solid var(--van-gray-1)
+}
+
 .van-swipe-cell__right > button {
   margin-left: 1px !important;
   height: 100% !important;

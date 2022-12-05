@@ -65,7 +65,6 @@ onMounted(() => {
 
 <style scoped>
 .login-form {
-  padding: var(--van-padding-md) 0;
   height: 100%;
   display: flex;
   justify-content: center;
